@@ -27,3 +27,9 @@ Node 在处理高并发，i/o 密集场景有明显的性能优势
   - webpack rollup gulp
 - 服务端渲染
   - Nuxt.js Next.js
+
+## 核心模块
+
+- fs
+- path
+- vm
