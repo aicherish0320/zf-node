@@ -1,0 +1,15 @@
+{
+  "name": "basic",
+  "version": "1.0.0",
+  "description": "Node.JS 是一个基于 Chrome V8 引擎的 JavaScript 运行环境(runtime)，Node 不是一门语言，是让 JS 运行在后端的运行时，并且不包括 JavaScript 全集，因为在服务端中不包含 DOM 和 BOM，Node 也提供了一些新的模块，例如：http，fs 等，Node.JS 使用了事件驱动、非阻塞式 I/O 的模型，使其轻量又高效并且 Node.js 的包管理器 Npm，是全球最大的开源生态系统",
+  "main": "01.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^9.4.0"
+  }
+}
