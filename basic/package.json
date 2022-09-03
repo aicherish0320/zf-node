@@ -15,6 +15,7 @@
     "mime": "^3.0.0"
   },
   "devDependencies": {
+    "nodemon": "^2.0.19",
     "webpack": "^5.74.0"
   }
 }
