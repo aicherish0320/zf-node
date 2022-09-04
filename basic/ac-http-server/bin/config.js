@@ -1,9 +1,9 @@
 module.exports = {
   port: {
     flags: '-p, --port <val>',
-    description: 'Port to use [3331]',
-    default: 3331,
-    usage: 'ac-http-server --port 3331'
+    description: 'Port to use [3330]',
+    default: 3330,
+    usage: 'ac-http-server --port 3330'
   },
   directory: {
     flags: '-d, --directory <val>',
