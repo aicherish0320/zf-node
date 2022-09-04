@@ -3,6 +3,7 @@
 const { program } = require('commander')
 const config = require('../bin/config')
 const pkg = require('../package.json')
+const Server = require('../src/main')
 
 const usages = []
 Object.values(config).forEach((option) => {
@@ -23,5 +24,7 @@ program.on('--help', () => {
 
 // 解析用户的所有参数
 program.parse(process.argv)
+
+const opts = program.opts()
 // 通过用户选项 去启东一个静态服务
-console.log('opts >>> ', program.opts())
+new Server(opts).start()
