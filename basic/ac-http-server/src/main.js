@@ -6,7 +6,9 @@ const path = require('path')
 const os = require('os')
 const url = require('url')
 const fs = require('fs').promises
-const { createReadStream } = require('fs')
+const { createReadStream, readFileSync } = require('fs')
+
+const template = readFileSync(path.resolve(__dirname, 'template.html'), 'utf-8')
 
 let interfaces = os.networkInterfaces()
 interfaces = Object.values(interfaces)
@@ -17,6 +19,7 @@ class Server {
   constructor(opts) {
     this.port = opts.port
     this.directory = opts.directory
+    this.template = template
   }
   handleRequest = async (req, res) => {
     // 当请求到来时 我需要判断 你的访问路径 是文件则显示文件的内容 如果是文件夹 则显示文件中的列表
@@ -32,10 +35,19 @@ class Server {
       } else {
         // 我们需要用目录的信息去渲染模板 返回给用户
         const dirs = await fs.readdir(absPath)
-        ejs.render(path.resolve(__dirname, 'template.html', { dirs }))
-        res.end('ok')
+        const ret = ejs.render(this.template, {
+          dirs: dirs.map((dir) => {
+            return {
+              dir,
+              href: path.join(pathname, dir)
+            }
+          })
+        })
+        res.setHeader('Content-Type', 'text/html;charset=utf8')
+        res.end(ret)
       }
     } catch (error) {
+      console.log('error >>> ', error)
       this.sendError(absPath, req, res)
     }
   }
