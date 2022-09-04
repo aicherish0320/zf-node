@@ -6,6 +6,8 @@ const path = require('path')
 const os = require('os')
 const url = require('url')
 const fs = require('fs').promises
+const zlib = require('zlib')
+const crypto = require('crypto')
 const { createReadStream, readFileSync } = require('fs')
 
 const template = readFileSync(path.resolve(__dirname, 'template.html'), 'utf-8')
@@ -69,20 +71,46 @@ class Server {
     // http1.1 max-age
     // res.setHeader('Cache-Control', '  max-age=5')
     // no-cache（有缓存只是不走而已） no-store（压根没缓存） 客户端无缓存区
-    res.setHeader('Cache-Control', 'no-cache')
+    // res.setHeader('Cache-Control', 'no-cache')
     // res.setHeader('Last-Modified', statObj.ctime.toGMTString())
 
-    let isModifiedSince = req.headers['if-modified-since']
-    let lastModified = statObj.ctime.toGMTString()
+    // let isModifiedSince = req.headers['if-modified-since']
+    // let lastModified = statObj.ctime.toGMTString()
 
-    if (isModifiedSince === lastModified) {
-      // 直接告诉浏览器 找缓存去
+    // if (isModifiedSince === lastModified) {
+    //   // 直接告诉浏览器 找缓存去
+    //   res.statusCode = 304
+    //   return res.end()
+    // }
+
+    // let ETag = crypto
+    //   .createHash('md5')
+    //   .update(readFileSync(absPath))
+    //   .digest('base64')
+    // let ifNoneMatch = req.headers['if-none-match']
+    // if (ETag === ifNoneMatch) {
+    //   res.statusCode = 304
+    //   return res.end()
+    // }
+    // res.setHeader('ETag', ETag)
+
+    if (this.cache(absPath, req, res, statObj)) {
       res.statusCode = 304
-      return res.end()
+      res.end()
+      return
     }
 
+    // 压缩，我们不希望把文件整个发送给客户端
+    // 服务端开启 gzip 压缩 可以降低文件传输大小
+    // gzip 对重复性较高的内容，进行替换
+
     res.setHeader('Content-Type', `${mime.getType(absPath)};charset=utf-8`)
-    return createReadStream(absPath).pipe(res)
+    let createGzip = null
+    if ((createGzip = this.gzip(absPath, req, res, statObj))) {
+      return createReadStream(absPath).pipe(createGzip).pipe(res)
+    } else {
+      return createReadStream(absPath).pipe(res)
+    }
 
     // 第一次访问服务器我们可以采用强制缓存（浏览器不要再找我了） 5s + 最后修改时间
     // 5s 内再次访问，就不会发起请求了
@@ -91,7 +119,47 @@ class Server {
     // 浏览器会根据状态码，走自己的缓存，过一会又超过了5s了，再走第二步
     // 如果在强制缓存的5s内访问资源，不会返回新的
 
+    // last-modified 不够准确，
+    // 1. 因为时间是精确到s，而我可以在1s内修改100次
+    // 2. 有可能最后修改时间变化了，但是内容没发生变化，也出现缓存失效的问题
+    // 为了保证靠谱，我们可以直接对比文件的内容（性能问题）
+
     // 强制缓存和协商缓存（对比缓存）
+  }
+  gzip(absPath, req, res, statObj) {
+    const encoding = req.headers['accept-encoding']
+    if (encoding.includes('gzip')) {
+      res.setHeader('Content-Encoding', 'gzip')
+      return zlib.createGzip(absPath)
+    }
+  }
+  cache(absPath, req, res, statObj) {
+    // 强制缓存
+    res.setHeader('Expires', new Date(Date.now() + 5 * 1000).toGMTString())
+    res.setHeader('Cache-Control', 'max-age=5')
+
+    //
+    let lastModified = statObj.ctime.toGMTString()
+    let eTag =
+      new Date(lastModified).getTime().toString(16) +
+      '-' +
+      statObj.size.toString(16)
+
+    res.setHeader('Last-modified', lastModified)
+    res.setHeader('ETag', eTag)
+
+    const ifNoneMatch = req.headers['if-none-match']
+    const ifModifiedSince = req.headers['if-modified-since']
+
+    if (lastModified !== ifModifiedSince) {
+      return false
+    }
+
+    if (ifNoneMatch !== eTag) {
+      return false
+    }
+
+    return true
   }
   start() {
     const server = http.createServer(this.handleRequest)
