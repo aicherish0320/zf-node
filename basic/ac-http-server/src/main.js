@@ -129,8 +129,9 @@ class Server {
   gzip(absPath, req, res, statObj) {
     const encoding = req.headers['accept-encoding']
     if (encoding.includes('gzip')) {
+      // 需要根据支持的压缩编码进行压缩，并且返回 content-encoding 来表示如何压缩的
       res.setHeader('Content-Encoding', 'gzip')
-      return zlib.createGzip(absPath)
+      return zlib.createGzip()
     }
   }
   cache(absPath, req, res, statObj) {
