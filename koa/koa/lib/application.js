@@ -32,9 +32,15 @@ class Application {
   }
   handleRequest = (req, res) => {
     const ctx = this.createContext(req, res)
+    res.statusCode = 404
     this.fn(ctx)
     // 返回最终的结果响应给用户
-    res.end(ctx.body)
+    const body = ctx.body
+    if (body) {
+      return res.end(body)
+    } else {
+      res.end('Not Found')
+    }
   }
   listen() {
     const server = http.createServer(this.handleRequest)
