@@ -22,12 +22,19 @@ class Application {
     const request = Object.create(this.request)
     const response = Object.create(this.response)
 
+    ctx.request = request
+    ctx.request.req = ctx.req = req
+
+    ctx.response = response
+    ctx.response.res = ctx.res = res
+
     return ctx
   }
   handleRequest = (req, res) => {
     const ctx = this.createContext(req, res)
-
     this.fn(ctx)
+    // 返回最终的结果响应给用户
+    res.end(ctx.body)
   }
   listen() {
     const server = http.createServer(this.handleRequest)
