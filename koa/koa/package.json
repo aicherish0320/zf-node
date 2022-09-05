@@ -1,0 +1,4 @@
+{
+  "name": "Koa",
+  "main": "./lib/application.js"
+}
