@@ -1,4 +1,4 @@
-const Koa = require('koa')
+const Koa = require('./koa')
 
 const app = new Koa()
 
@@ -11,35 +11,49 @@ const app = new Koa()
 function sleep() {
   return new Promise((resolve) => {
     setTimeout(() => {
-      console.log('sleep >>> ')
+      console.log('sleep')
       resolve()
     }, 2000)
   })
 }
-// 1 3 sleep 5 6 4 2
+
 app.use(async (ctx, next) => {
-  console.log('1 >>> ')
-  ctx.body = 1
-  // next 表示执行下一个中间件
   await next()
-  console.log(2)
-  ctx.body = 2
+  await next()
+  // setTimeout(() => {
+  //   console.log(1)
+  //   ctx.body = 'Hello'
+  // }, 1000)
 })
-app.use(async (ctx, next) => {
-  console.log('3 >>> ')
-  ctx.body = 3
-  await sleep()
-  next()
-  console.log(4)
-  ctx.body = 4
+
+app.on('error', function (err) {
+  console.log(' >>> ', err)
 })
-app.use((ctx, next) => {
-  console.log('5 >>> ')
-  ctx.body = 5
-  next()
-  console.log(6)
-  ctx.body = 6
-})
+
+// 1 3 sleep 5 6 4 2
+// app.use(async (ctx, next) => {
+//   console.log('1')
+//   ctx.body = '1'
+//   // next 表示执行下一个中间件
+//   await next()
+//   console.log(2)
+//   ctx.body = '2'
+// })
+// app.use(async (ctx, next) => {
+//   console.log('3')
+//   ctx.body = '3'
+//   await sleep()
+//   next()
+//   console.log(4)
+//   ctx.body = '4'
+// })
+// app.use((ctx, next) => {
+//   console.log('5')
+//   ctx.body = '5'
+//   next()
+//   console.log(6)
+//   ctx.body = '6'
+// })
 
 app.listen('3000', () => {
   console.log('3000 port')
