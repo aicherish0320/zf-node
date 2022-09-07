@@ -7,9 +7,11 @@
     <title>LoginPage</title>
   </head>
   <body>
-    <form action="/login" method="post">
+    <!-- multipart 多部分表单数据 -->
+    <form action="/login" method="post" enctype="multipart/form-data">
       <input type="text" name="username" />
       <input type="password" name="password" />
+      <input type="file" name="file" id="file" />
       <button>登录</button>
     </form>
   </body>

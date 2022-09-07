@@ -9,11 +9,15 @@ module.exports = () => {
       })
       ctx.req.on('end', function () {
         // 浏览器在发送请求的时候 会自动带上请求格式
-        const body = Buffer.concat(arr).toString()
         if (ctx.request.type === 'application/json') {
+          const body = Buffer.concat(arr).toString()
           ctx.request.body = JSON.parse(body)
         } else if (ctx.request.type === 'application/x-www-form-urlencoded') {
+          const body = Buffer.concat(arr).toString()
           ctx.request.body = querystring.parse(body, '&', '=')
+        } else if (ctx.request.type === 'multipart/form-data') {
+          const body = Buffer.concat(arr)
+          console.log(body.toString())
         }
         resolve()
       })
